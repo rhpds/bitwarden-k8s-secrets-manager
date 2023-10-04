@@ -1,0 +1,39 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "bitwarden-k8s-secrets-manager.name" . }}
+  labels:
+    {{- include "bitwarden-k8s-secrets-manager.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - bitwarden-k8s-secrets-manager.demo.redhat.com
+  resources:
+  - bitwardensyncconfigs
+  - bitwardensyncconfigs/status
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+  - update

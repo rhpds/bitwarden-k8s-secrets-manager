@@ -1,0 +1,111 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: bitwardensyncconfigs.bitwarden-k8s-secrets-manager.demo.redhat.com
+spec:
+  group: bitwarden-k8s-secrets-manager.demo.redhat.com
+  scope: Namespaced
+  names:
+    plural: bitwardensyncconfigs
+    singular: bitwardensyncconfig
+    kind: BitwardenSyncConfig
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    subresources:
+      status: {}
+    schema:
+      openAPIV3Schema:
+        description: >-
+          Configuration for bitwarden-k8s-secrets-manager 
+        type: object
+        required:
+        - apiVersion
+        - kind
+        - metadata
+        - spec
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+            properties:
+              name:
+                type: string
+                maxLength: 63
+                pattern: ^[a-z0-9\-]*[a-z0-9]$
+          spec:
+            description: >-
+              Bitwarden Secrets synchronization settings.
+            type: object
+            properties:
+              accessTokenSecret:
+                type: object
+                properties:
+                  name:
+                    type: string
+                required:
+                - name
+              secrets:
+                type: array
+                items:
+                  type: object
+                  required:
+                  - data
+                  - name
+                  properties:
+                    annotations:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          key:
+                            type: string
+                          secret:
+                            type: string
+                          value:
+                            type: string
+                        required:
+                        - secret
+                    data:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          key:
+                            type: string
+                          secret:
+                            type: string
+                          value:
+                            type: string
+                        required:
+                        - secret
+                    labels:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          key:
+                            type: string
+                          secret:
+                            type: string
+                          value:
+                            type: string
+                        required:
+                        - secret
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    type:
+                      type: string
+              syncInterval:
+                minimum: 10
+                type: integer
+
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true

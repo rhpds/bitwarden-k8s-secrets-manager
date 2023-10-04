@@ -1,0 +1,8 @@
+{{- if .Values.namespace.create -}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ include "bitwarden-k8s-secrets-manager.namespaceName" . }}
+  labels:
+    {{- include "bitwarden-k8s-secrets-manager.labels" . | nindent 4 }}
+{{- end -}}

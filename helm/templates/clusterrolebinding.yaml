@@ -1,0 +1,14 @@
+{{- if .Values.deploy -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "bitwarden-k8s-secrets-manager.name" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "bitwarden-k8s-secrets-manager.name" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "bitwarden-k8s-secrets-manager.serviceAccountName" . }}
+  namespace: {{ include "bitwarden-k8s-secrets-manager.namespaceName" $ }}
+{{- end -}}

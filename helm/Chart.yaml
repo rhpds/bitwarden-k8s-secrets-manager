@@ -1,0 +1,6 @@
+apiVersion: v2
+name: bitwarden-k8s-secrets-manager
+description: Operator for managing k8s secrets from Bitwarden secrets manager
+type: application
+version: 0.1.0
+appVersion: 0.1.0
