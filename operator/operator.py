@@ -1,17 +1,11 @@
 import asyncio
-import kopf
 import logging
-import os
-import yaml
 
-from datetime import datetime, timedelta, timezone
-
-import kubernetes_asyncio
+import kopf
 
 from configure_kopf_logging import configure_kopf_logging
 from infinite_relative_backoff import InfiniteRelativeBackoff
 from bitwardensyncconfig import BitwardenSyncConfig
-
 from k8sutil import K8sUtil
 
 @kopf.on.startup()
@@ -45,7 +39,7 @@ async def bitwarden_sync_config_create(**kwargs):
     await BitwardenSyncConfig.on_create(**kwargs)
 
 @kopf.on.delete(BitwardenSyncConfig.api_group, BitwardenSyncConfig.api_version, BitwardenSyncConfig.plural)
-async def bitwarden_sync_config_create(**kwargs):
+async def bitwarden_sync_config_delete(**kwargs):
     await BitwardenSyncConfig.on_delete(**kwargs)
 
 @kopf.on.resume(BitwardenSyncConfig.api_group, BitwardenSyncConfig.api_version, BitwardenSyncConfig.plural)
