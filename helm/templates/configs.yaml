@@ -1,0 +1,10 @@
+{{ range $name, $config := .Values.configs }}
+---
+apiVersion: bitwarden-k8s-secrets-manager.demo.redhat.com/v1
+kind: BitwardenSyncConfig
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "bitwarden-k8s-secrets-manager.namespaceName" $ }}
+spec:
+  {{- $config | toYaml | nindent 2 }}
+{{ end }}

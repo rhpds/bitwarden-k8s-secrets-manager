@@ -5,6 +5,18 @@ namespace:
   # If not set and create is true, a name is generated using the name template
   name:
 
+# Configuration to setup sync
+#configs:
+#  cluster:
+#    accessTokenSecret:
+#      name: ...
+#    secrets:
+#    - name: ...
+#      namespace: ...
+#      data:
+#        ...
+#    syncInterval: 300
+
 deploy: true
 
 image:
