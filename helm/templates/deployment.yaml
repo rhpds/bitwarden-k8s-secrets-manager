@@ -23,7 +23,7 @@ spec:
         image: {{ include "bitwarden-k8s-secrets-manager.image" . | quote }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
-          {{- toYaml .Values.resources | nindent 12 }}
+          {{- toYaml .Values.resources | nindent 10 }}
         livenessProbe:
           initialDelaySeconds: 30
           tcpSocket:
