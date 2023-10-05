@@ -151,8 +151,11 @@ class BitwardenSyncConfig(CachedK8sObject):
             }
             status_entries.append(status_entry)
             try:
+                data = {
+                    key: b64encode(value.encode('utf-8')).decode('utf-8')
+                    for key, value in bitwarden_secrets.get_values(secret_config.data).items()
+                }
                 annotations = bitwarden_secrets.get_values(secret_config.annotations)
-                data = bitwarden_secrets.get_values(secret_config.data)
                 labels = bitwarden_secrets.get_values(secret_config.labels)
                 labels['app.kubernetes.io/managed-by'] = 'bitwarden-k8s-secrets-manager'
                 labels[self.sync_config_label] = self.sync_config_value
@@ -322,7 +325,7 @@ class BitwardenSecrets:
         ret = {}
         for key, src in secret_sources.items():
             if src.value:
-                ret[key] = b64encode(src.value.encode('utf-8')).decode('utf-8')
+                ret[key] = src.value
             elif src.secret:
                 if src.secret not in self.secrets_dict:
                     raise BitwardenSyncError(f"No Bitwarden secret {src.secret}")
@@ -338,10 +341,10 @@ class BitwardenSecrets:
                         )
                     value = value[src.key]
                 if isinstance(value, str):
-                    ret[key] = b64encode(value.encode('utf-8')).decode('utf-8')
+                    ret[key] = value
                 else:
                     # Maybe not what is intended, but better than to fail?
-                    ret[key] = b64encode(json.dumps(value).encode('utf-8')).decode('utf-8')
+                    ret[key] = json.dumps(value)
             else:
                 raise BitwardenSyncError("No secret or value in configuration")
         return ret
