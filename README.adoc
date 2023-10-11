@@ -1,0 +1,68 @@
+= Bitwarden K8s Secrets Manager
+
+A kubernetes operator which synchronizes secrets from Bitwarden(TM) Secrets
+Manager.
+
+This operator is designed to be installed in a cluster to manage secrets in
+namespaces in any namespace.
+
+== Installation
+
+A Helm chart is provided for installation. It can be installed directly
+with helm or by using the helm chart as a source for ArgoCD.
+
+=== Installation with Helm
+
+----
+helm install bitwarden-k8s-secrets-manager helm/
+----
+
+== Configuration
+
+A custom resource definition is provided to allow creation of
+BitWardenSyncConfig resources.
+
+=== Example
+
+--------------------------------------------------------------------------------
+apiVersion: bitwarden-k8s-secrets-manager.demo.redhat.com/v1
+kind: BitwardenSyncConfig
+metadata:
+  name: cluster
+  namespace: bitwarden-k8s-secrets-manager
+spec:
+  tokenSecret:
+    name: bitwarden-access-token
+  secrets:
+  # Bitwarden secret named "app_secret_key" is a simple string value synced
+  # to secret "app-secret-key" in "app-namespace" under data item "token".
+  - name: app-secret-key
+    namespace: app-namespace
+    data:
+      token:
+        secret: app_secret_key
+
+  # Bitwarden secret named "app_database_auth" has a value in YAML or JSON dict
+  # format with keys "server", "username", and "password".
+  # Secret is synced to secret "app-database-auth" in "app-namespace" with
+  # labels "app.kubernetes.io/name" with a value "example-app" and
+  # "database-server" with value that exposes the server value.
+  - name: app-database-auth
+    namespace: app-namespace
+    data:
+      server:
+        secret: app_database_auth
+        key: server
+      username:
+        secret: app_database_auth
+        key: username
+      password:
+        secret: app_database_auth
+        key: password
+    labels:
+      app.kubernetes.io/name:
+        value: example-app
+      database-server:
+        secret: app_database_auth
+        key: server
+--------------------------------------------------------------------------------
