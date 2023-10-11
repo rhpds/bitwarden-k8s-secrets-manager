@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  bitwarden-k8s-secrets-manager:
+  - apiVersion: v2
+    appVersion: 0.1.5
+    created: "2023-10-11T19:49:46.417925028Z"
+    description: Operator for managing k8s secrets from Bitwarden secrets manager
+    digest: cedceefa2f7a981abe96cdf0cfdb83611320a4751a9297fcdb816cb19c29417e
+    name: bitwarden-k8s-secrets-manager
+    type: application
+    urls:
+    - https://rhpds.github.io/bitwarden-k8s-secrets-manager/bitwarden-k8s-secrets-manager-0.1.5.tgz
+    version: 0.1.5
+generated: "2023-10-11T19:49:46.417242484Z"
