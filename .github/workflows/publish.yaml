@@ -60,8 +60,6 @@ jobs:
 
   publish-helm-charts:
     needs: publish
-    env:
-      IMAGE_NAME: anarchy
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Source
@@ -84,8 +82,8 @@ jobs:
       run: |
         helm dep up helm/
         helm package helm/
-        mv ${{ env.IMAGE_NAME }}-*.tgz gh-pages
-        helm repo index --url https://redhat-cop.github.io/${{ env.IMAGE_NAME }} gh-pages
+        mv ${{ vars.IMAGE_NAME }}-*.tgz gh-pages
+        helm repo index --url https://rhpds.github.io/${{ vars.IMAGE_NAME }} gh-pages
 
     - name: Push Changes to GH Pages
       run: |
