@@ -13,14 +13,37 @@ with helm or by using the helm chart as a source for ArgoCD.
 
 === Installation with Helm
 
-----
-helm install bitwarden-k8s-secrets-manager helm/
-----
+--------------------------------------------------------------------------------
+helm repo add bitwarden-k8s-secrets-manager https://rhpds.github.io/bitwarden-k8s-secrets-manager
+helm install bitwarden-k8s-secrets-manager bitwarden-k8s-secrets-manager/bitwarden-k8s-secrets-manager
+--------------------------------------------------------------------------------
+
+=== Installation with ArgoCD
+
+--------------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: bitwarden-k8s-secrets-manager
+  namespace: openshift-gitops
+spec:
+  destination:
+    name: in-cluster
+  project: default
+  helm:
+    path: helm
+    repoURL: https://github.com/rhpds/bitwarden-k8s-secrets-manager.git
+    targetRevision: {{ .Values.bitwardenK8sSecretsManager.version }}
+--------------------------------------------------------------------------------
 
 == Configuration
 
 A custom resource definition is provided to allow creation of
-BitWardenSyncConfig resources.
+BitwardenSyncConfig resources.
+
+The Helm chart supports creating BitwardenSyncConfigs on installation with
+values specifying a dictionary in the values with the key being the
+BitwardenSyncConfig name and the value being the spec.
 
 === Example
 
