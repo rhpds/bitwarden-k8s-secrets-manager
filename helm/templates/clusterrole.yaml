@@ -11,6 +11,8 @@ rules:
   resources:
   - bitwardensyncconfigs
   - bitwardensyncconfigs/status
+  - bitwardensecrets
+  - bitwardensecrets/status
   verbs:
   - create
   - delete
