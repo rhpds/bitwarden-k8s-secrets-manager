@@ -10,6 +10,7 @@ import kubernetes_asyncio
 
 from k8sutil import CachedK8sObject, K8sUtil
 
+
 class BitwardenSyncConfig(CachedK8sObject):
     api_group = K8sUtil.operator_domain
     api_version = K8sUtil.operator_version
@@ -62,8 +63,8 @@ class BitwardenSyncConfig(CachedK8sObject):
         secret = None
         try:
             secret = await K8sUtil.core_v1_api.read_namespaced_secret(
-                name = name,
-                namespace = namespace,
+                name=name,
+                namespace=namespace,
             )
         except kubernetes_asyncio.client.rest.ApiException as err:
             if err.status == 404:
@@ -79,8 +80,8 @@ class BitwardenSyncConfig(CachedK8sObject):
 
         try:
             secret = await K8sUtil.core_v1_api.delete_namespaced_secret(
-                name = name,
-                namespace = namespace,
+                name=name,
+                namespace=namespace,
             )
         except kubernetes_asyncio.client.rest.ApiException as err:
             if err.status != 404:
@@ -114,8 +115,8 @@ class BitwardenSyncConfig(CachedK8sObject):
     async def get_access_token(self):
         try:
             token_secret = await K8sUtil.core_v1_api.read_namespaced_secret(
-                name = self.access_token_secret_name,
-                namespace = self.namespace,
+                name=self.access_token_secret_name,
+                namespace=self.namespace,
             )
         except kubernetes_asyncio.client.rest.ApiException as err:
             if err.status == 404:
@@ -163,8 +164,8 @@ class BitwardenSyncConfig(CachedK8sObject):
                 secret = None
                 try:
                     secret = await K8sUtil.core_v1_api.read_namespaced_secret(
-                        name = secret_config.name,
-                        namespace = namespace,
+                        name=secret_config.name,
+                        namespace=namespace,
                     )
                     status_entry['uid'] = secret.metadata.uid
                 except kubernetes_asyncio.client.rest.ApiException as err:
@@ -203,9 +204,9 @@ class BitwardenSyncConfig(CachedK8sObject):
                         secret.type = secret_config.type
 
                         secret = await K8sUtil.core_v1_api.replace_namespaced_secret(
-                            body = secret,
-                            name = secret_config.name,
-                            namespace = namespace,
+                            body=secret,
+                            name=secret_config.name,
+                            namespace=namespace,
                         )
                         logger.info(f"Updated {secret_config} for {self}")
                         status_entry['state'] = 'synced'
@@ -214,16 +215,16 @@ class BitwardenSyncConfig(CachedK8sObject):
 
                 else:
                     secret = await K8sUtil.core_v1_api.create_namespaced_secret(
-                        body = kubernetes_asyncio.client.V1Secret(
-                            data = data,
-                            metadata = kubernetes_asyncio.client.V1ObjectMeta(
-                                annotations = annotations,
-                                name = secret_config.name,
-                                labels = labels,
+                        body=kubernetes_asyncio.client.V1Secret(
+                            data=data,
+                            metadata=kubernetes_asyncio.client.V1ObjectMeta(
+                                annotations=annotations,
+                                name=secret_config.name,
+                                labels=labels,
                             ),
-                            type = secret_config.type,
+                            type=secret_config.type,
                         ),
-                        namespace = namespace,
+                        namespace=namespace,
                     )
                     logger.info(f"Created {secret_config} for {self}")
                     status_entry['state'] = 'synced'
@@ -266,9 +267,6 @@ class BitwardenSyncConfig(CachedK8sObject):
         })
 
 
-
-
-
 class BitwardenSyncConfigSecret:
     def __init__(self, definition):
         self.annotations = {
@@ -296,25 +294,46 @@ class BitwardenSyncConfigSecretSource:
         self.key = definition.get('key')
         self.secret = definition.get('secret')
         self.value = definition.get('value')
+        self.project = definition.get('project')
 
 
 class BitwardenSecrets:
     bws_cmd = os.environ.get('BWS_CMD', 'bws')
 
     @classmethod
-    async def get(cls, access_token):
+    async def get_projects(cls, access_token):
         proc = await asyncio.create_subprocess_exec(
-            cls.bws_cmd, '--access-token', access_token, '--output', 'json', 'list', 'secrets',
-            stdout = asyncio.subprocess.PIPE,
-            stderr = asyncio.subprocess.PIPE,
+            cls.bws_cmd, '--access-token', access_token, '--output', 'json', 'list', 'projects',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
         stdout, stderr = await proc.communicate()
         if stderr:
             raise BitwardenSyncError(f"bws error: {stderr}")
 
+        return json.loads(stdout)
+
+    @classmethod
+    async def get(cls, access_token):
+        projects = await cls.get_projects(access_token)
+        project_map = {project['id']: project['name'] for project in projects}
+        proc = await asyncio.create_subprocess_exec(
+            cls.bws_cmd, '--access-token', access_token, '--output', 'json', 'list', 'secrets',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+        if stderr:
+            raise BitwardenSyncError(f"bws error: {stderr}")
+
+        secrets = json.loads(stdout)
+        for item in secrets:
+            item['project'] = project_map.get(item['projectId'])
+
         return cls(
-            secrets_dict = {
-                item['key']: BitwardenSecret(item) for item in json.loads(stdout)
+            secrets_dict={
+                item['key']: BitwardenSecret(item)
+                for item in secrets
             }
         )
 
@@ -349,10 +368,12 @@ class BitwardenSecrets:
                 raise BitwardenSyncError("No secret or value in configuration")
         return ret
 
+
 class BitwardenSecret:
     def __init__(self, definition):
         self.id = definition['id']
         self.key = definition['key']
+        self.project = definition['project']
         # Attempt to handle values as YAML, but only use YAML parsed value if it is not a string.
         try:
             self.value = yaml.safe_load(definition['value'])
@@ -362,7 +383,7 @@ class BitwardenSecret:
             self.value = definition['value']
 
     def __str__(self):
-        return f"{self.key} ({self.id})"
+        return f"{self.key} ({self.id}) {self.project}"
 
 
 class BitwardenSyncError(Exception):
