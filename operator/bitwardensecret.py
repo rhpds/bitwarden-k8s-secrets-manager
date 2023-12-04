@@ -15,6 +15,7 @@ class BitwardenSecrets(CachedK8sObject):
     cache = {}
     sync_config_label = os.environ.get('MANAGED_SECRET_LABEL', f"{K8sUtil.operator_domain}/bitwarden-secret")
     # TODO: Make this configurable
+    # TODO: Validate Project name
     secret_access_token_secret_name = os.environ.get('SECRET_TOKEN_NAME', 'bitwarden-access-token')
     operator_namespace = os.environ.get('OPERATOR_NAMESPACE', 'bitwarden-dev')
 
@@ -117,7 +118,6 @@ class BitwardenSecrets(CachedK8sObject):
             logger.error(f"Failed getting Bitwarden secrets for {self}: {err}")
             return
         for secret_config in self.secrets:
-            namespace = secret_config.namespace or self.namespace
             try:
                 data = {
                     key: b64encode(value.encode('utf-8')).decode('utf-8')
@@ -131,7 +131,7 @@ class BitwardenSecrets(CachedK8sObject):
                 try:
                     secret = await K8sUtil.core_v1_api.read_namespaced_secret(
                         name=secret_config.name,
-                        namespace=namespace,
+                        namespace=self.namespace,
                     )
                 except kubernetes_asyncio.client.rest.ApiException as err:
                     if err.status != 404:
@@ -157,7 +157,7 @@ class BitwardenSecrets(CachedK8sObject):
                         secret = await K8sUtil.core_v1_api.replace_namespaced_secret(
                             body=secret,
                             name=secret_config.name,
-                            namespace=namespace,
+                            namespace=self.namespace,
                         )
                         logger.info(f"Updated {secret_config} for {self}")
                 else:
@@ -172,7 +172,7 @@ class BitwardenSecrets(CachedK8sObject):
                             ),
                             type=secret_config.type,
                         ),
-                        namespace=namespace,
+                        namespace=self.namespace,
                     )
 
                     logger.info(f"Created {secret_config} for {self}")
