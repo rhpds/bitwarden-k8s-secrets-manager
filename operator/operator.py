@@ -6,7 +6,9 @@ import kopf
 from configure_kopf_logging import configure_kopf_logging
 from infinite_relative_backoff import InfiniteRelativeBackoff
 from bitwardensyncconfig import BitwardenSyncConfig
+from bitwardensecret import BitwardenSecrets
 from k8sutil import K8sUtil
+
 
 @kopf.on.startup()
 async def startup(settings: kopf.OperatorSettings, **_):
@@ -38,17 +40,21 @@ async def startup(settings: kopf.OperatorSettings, **_):
 async def bitwarden_sync_config_create(**kwargs):
     await BitwardenSyncConfig.on_create(**kwargs)
 
+
 @kopf.on.delete(BitwardenSyncConfig.api_group, BitwardenSyncConfig.api_version, BitwardenSyncConfig.plural)
 async def bitwarden_sync_config_delete(**kwargs):
     await BitwardenSyncConfig.on_delete(**kwargs)
+
 
 @kopf.on.resume(BitwardenSyncConfig.api_group, BitwardenSyncConfig.api_version, BitwardenSyncConfig.plural)
 async def bitwarden_sync_config_resume(**kwargs):
     await BitwardenSyncConfig.on_resume(**kwargs)
 
+
 @kopf.on.update(BitwardenSyncConfig.api_group, BitwardenSyncConfig.api_version, BitwardenSyncConfig.plural)
 async def bitwarden_sync_config_update(**kwargs):
     await BitwardenSyncConfig.on_update(**kwargs)
+
 
 @kopf.daemon(BitwardenSyncConfig.api_group, BitwardenSyncConfig.api_version, BitwardenSyncConfig.plural, cancellation_timeout=1)
 async def bitwarden_sync_config_daemon(logger, stopped, **kwargs):
@@ -57,5 +63,36 @@ async def bitwarden_sync_config_daemon(logger, stopped, **kwargs):
         while not stopped:
             await asyncio.sleep(config.sync_interval)
             await config.sync_secrets(logger=logger)
+    except asyncio.CancelledError:
+        pass
+
+
+@kopf.on.create(BitwardenSecrets.api_group, BitwardenSecrets.api_version, BitwardenSecrets.plural)
+async def bitwarden_secrets_create(**kwargs):
+    await BitwardenSecrets.on_create(**kwargs)
+
+
+@kopf.on.delete(BitwardenSecrets.api_group, BitwardenSecrets.api_version, BitwardenSecrets.plural)
+async def bitwarden_secrets_delete(**kwargs):
+    await BitwardenSecrets.on_delete(**kwargs)
+
+
+@kopf.on.resume(BitwardenSecrets.api_group, BitwardenSecrets.api_version, BitwardenSecrets.plural)
+async def bitwarden_secrets_resume(**kwargs):
+    await BitwardenSecrets.on_resume(**kwargs)
+
+
+@kopf.on.update(BitwardenSecrets.api_group, BitwardenSecrets.api_version, BitwardenSecrets.plural)
+async def bitwarden_secrets_update(**kwargs):
+    await BitwardenSecrets.on_update(**kwargs)
+
+
+@kopf.daemon(BitwardenSecrets.api_group, BitwardenSecrets.api_version, BitwardenSecrets.plural, cancellation_timeout=1)
+async def bitwarden_secrets_daemon(logger, stopped, **kwargs):
+    secret = BitwardenSecrets.register(**kwargs)
+    try:
+        while not stopped:
+            await secret.sync_secret(logger=logger)
+            await asyncio.sleep(secret.sync_interval)
     except asyncio.CancelledError:
         pass

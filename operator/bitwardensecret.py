@@ -66,34 +66,8 @@ class BitwardenSecrets(CachedK8sObject):
     def uid(self):
         return self.meta.get('uid')
 
-    async def check_delete_secret(self, name, namespace):
-        secret = None
-        try:
-            secret = await K8sUtil.core_v1_api.read_namespaced_secret(
-                name=name,
-                namespace=namespace,
-            )
-        except kubernetes_asyncio.client.rest.ApiException as err:
-            if err.status == 404:
-                return None, None
-            raise
-
-        if (
-            not secret.metadata.labels or
-            secret.metadata.labels['app.kubernetes.io/managed-by'] != 'bitwarden-k8s-secrets-manager' or
-            secret.metadata.labels[self.sync_config_label] != self.sync_config_value
-        ):
-            return secret, False
-
-        try:
-            secret = await K8sUtil.core_v1_api.delete_namespaced_secret(
-                name=name,
-                namespace=namespace,
-            )
-        except kubernetes_asyncio.client.rest.ApiException as err:
-            if err.status != 404:
-                raise
-        return secret, True
+    async def delete_secret(self, logger):
+        logger.info(f"Deleting secrets for {self}")
 
     async def get_access_token(self):
         try:
@@ -128,7 +102,15 @@ class BitwardenSecrets(CachedK8sObject):
             "uid": secret.metadata.uid,
             }
 
-    async def sync_secrets(self, logger):
+    async def is_managed(self, secret):
+        return any(
+            owner_ref.uid == self.uid and
+            owner_ref.kind == self.kind and
+            owner_ref.api_version == self.api_version
+            for owner_ref in secret.metadata.owner_references or []
+            )
+
+    async def sync_secret(self, logger):
         try:
             bitwarden_secrets = await self.get_bitwarden_secrets()
         except BitwardenSyncError as err:
@@ -156,14 +138,7 @@ class BitwardenSecrets(CachedK8sObject):
                         raise BitwardenSyncError(f"Error {err.status} getting secret: {err}") from err
 
                 if secret:
-                    is_managed = any(
-                        owner_ref.uid == self.uid and
-                        owner_ref.kind == self.kind and
-                        owner_ref.api_version == self.api_version
-                        for owner_ref in secret.metadata.owner_references or []
-                        )
-
-                    if not is_managed:
+                    if not self.is_managed:
                         raise BitwardenSyncError(
                             f"{secret_config} is not owned by {self}"
                         )
@@ -206,6 +181,3 @@ class BitwardenSecrets(CachedK8sObject):
                 logger.error(f"Failed to sync {secret_config} for {self}: {err}")
             except Exception as err:
                 logger.exception(f"Error syncing {secret_config} for {self}: {err}")
-
-    async def delete_secret(self, logger):
-        pass
