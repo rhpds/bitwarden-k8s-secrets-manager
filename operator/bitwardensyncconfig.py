@@ -348,6 +348,14 @@ class BitwardenSecrets:
             elif src.secret:
                 if src.secret not in self.secrets_dict:
                     raise BitwardenSyncError(f"No Bitwarden secret {src.secret}")
+
+                bitwarden_secret = self.secrets_dict[src.secret]
+                value = bitwarden_secret.value
+
+                if hasattr(src, 'project') and src.project:
+                    if not hasattr(bitwarden_secret, 'project') or bitwarden_secret.project != src.project:
+                        raise BitwardenSyncError(f"Project mismatch for secret {src.secret}.{src.key}")
+
                 value = self.secrets_dict[src.secret].value
                 if src.key:
                     if not isinstance(value, dict):
