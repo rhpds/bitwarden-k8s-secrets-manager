@@ -54,14 +54,20 @@ async def check_delete_secret(
     )
 
 async def manage_secret(
-    bitwarden_secrets, managed_by, name, namespace, secret_config, logger,
+    bitwarden_projects, bitwarden_secrets, managed_by, name, namespace, secret_config, logger,
 ):
     data = {
         key: b64encode(value.encode('utf-8')).decode('utf-8')
-        for key, value in bitwarden_secrets.get_values(secret_config.secret_data).items()
+        for key, value in bitwarden_secrets.get_values(
+            sources=secret_config.secret_data, projects=bitwarden_projects,
+        ).items()
     }
-    annotations = bitwarden_secrets.get_values(secret_config.secret_annotations)
-    labels = bitwarden_secrets.get_values(secret_config.secret_labels)
+    annotations = bitwarden_secrets.get_values(
+        sources=secret_config.secret_annotations, projects=bitwarden_projects,
+    )
+    labels = bitwarden_secrets.get_values(
+        sources=secret_config.secret_labels, projects=bitwarden_projects,
+    )
     labels['app.kubernetes.io/managed-by'] = 'bitwarden-k8s-secrets-manager'
     labels[K8sUtil.sync_config_label] = managed_by.sync_config_value
 

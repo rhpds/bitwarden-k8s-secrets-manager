@@ -18,7 +18,7 @@ spec:
     schema:
       openAPIV3Schema:
         description: >-
-          Configuration for bitwarden-k8s-secrets-manager 
+          Configuration for bitwarden-k8s-secrets-manager
         type: object
         required:
         - apiVersion
@@ -68,6 +68,8 @@ spec:
                         properties:
                           key:
                             type: string
+                          project:
+                            type: string
                           secret:
                             type: string
                           value:
@@ -81,6 +83,8 @@ spec:
                         properties:
                           key:
                             type: string
+                          project:
+                            type: string
                           secret:
                             type: string
                           value:
@@ -93,6 +97,8 @@ spec:
                         type: object
                         properties:
                           key:
+                            type: string
+                          project:
                             type: string
                           secret:
                             type: string

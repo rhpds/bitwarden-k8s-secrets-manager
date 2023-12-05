@@ -4,6 +4,7 @@ import kubernetes_asyncio
 
 from k8sutil import CachedK8sObject, K8sUtil
 from bitwardensyncconfigsecret import BitwardenSyncConfigSecret
+from bitwardenprojects import BitwardenProjects
 from bitwardensecrets import BitwardenSecrets
 from bitwardensyncerror import BitwardenSyncError
 from bitwardensyncsecret import BitwardenSyncSecret
@@ -94,15 +95,31 @@ class BitwardenSyncConfig(CachedK8sObject):
         return b64decode(token_secret.data['token']).decode('utf-8')
 
     async def get_bitwarden_secrets(self):
-        bitwarden_access_token = await self.get_access_token()
         return await BitwardenSecrets.get(access_token=bitwarden_access_token, project=self.project)
 
     async def sync_secrets(self, logger):
+        bitwarden_access_token = await self.get_access_token()
         try:
-            bitwarden_secrets = await self.get_bitwarden_secrets()
+            bitwarden_projects = await BitwardenProjects.get(bitwarden_access_token)
+        except BitwardenSyncError as err:
+            logger.error(f"Failed getting Bitwarden projects for {self}: {err}")
+            return
+
+        bitwarden_project = None
+        if self.project:
+            bitwarden_project = bitwarden_projects.get_project(self.project)
+            if not bitwarden_project:
+                raise BitwardenSyncError(f"Bitwarden project {self.project} not found")
+
+        try:
+            bitwarden_secrets = await BitwardenSecrets.get(
+                bitwarden_access_token,
+                project_id=(bitwarden_project.id if bitwarden_project else None),
+            )
         except BitwardenSyncError as err:
             logger.error(f"Failed getting Bitwarden secrets for {self}: {err}")
             return
+
         status_entries = []
         for secret_config in self.secrets:
             name = secret_config.name
@@ -114,6 +131,7 @@ class BitwardenSyncConfig(CachedK8sObject):
             status_entries.append(status_entry)
             try:
                 secret = await manage_secret(
+                    bitwarden_projects=bitwarden_projects,
                     bitwarden_secrets=bitwarden_secrets,
                     managed_by=self,
                     name=name,
@@ -148,6 +166,7 @@ class BitwardenSyncConfig(CachedK8sObject):
         })
 
         await BitwardenSyncSecret.sync_for_config(
+                bitwarden_projects=bitwarden_projects,
                 bitwarden_secrets=bitwarden_secrets,
                 config=self,
                 logger=logger,

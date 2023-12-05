@@ -8,6 +8,8 @@ class BitwardenSecret:
         # pylint: disable=invalid-name
         self.id = definition['id']
         self.key = definition['key']
+        self.project_id = definition['projectId']
+
         # Attempt to handle values as YAML, but only use YAML parsed value if it is not a string.
         try:
             self.value = yaml.safe_load(definition['value'])

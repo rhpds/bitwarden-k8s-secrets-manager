@@ -37,10 +37,14 @@ class BitwardenSyncSecret(CachedK8sObject):
         logger.info(f"{secret} updated")
 
     @classmethod
-    async def sync_for_config(cls, bitwarden_secrets, config, logger):
+    async def sync_for_config(cls, bitwarden_projects, bitwarden_secrets, config, logger):
         for secret in cls.cache.values():
             if secret.config_name == config.name and secret.config_namespace == config.namespace:
-                await secret.sync_secret(bitwarden_secrets=bitwarden_secrets, logger=logger)
+                await secret.sync_secret(
+                    bitwarden_projects=bitwarden_projects,
+                    bitwarden_secrets=bitwarden_secrets,
+                    logger=logger,
+                )
 
     @property
     def config_name(self):
@@ -49,6 +53,10 @@ class BitwardenSyncSecret(CachedK8sObject):
     @property
     def config_namespace(self):
         return self.spec.get('config', {}).get('namespace', K8sUtil.operator_namespace or self.namespace)
+
+    @property
+    def project(self):
+        return self.spec.get('project', None)
 
     @property
     def secret_annotations(self):
@@ -116,9 +124,10 @@ class BitwardenSyncSecret(CachedK8sObject):
             logger=logger,
         )
 
-    async def sync_secret(self, bitwarden_secrets, logger):
+    async def sync_secret(self, bitwarden_projects, bitwarden_secrets, logger):
         try:
             secret = await manage_secret(
+                bitwarden_projects = bitwarden_projects,
                 bitwarden_secrets = bitwarden_secrets,
                 managed_by = self,
                 name = self.name,
