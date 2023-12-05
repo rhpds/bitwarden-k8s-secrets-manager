@@ -4,7 +4,7 @@ set -x
 set -eo pipefail
 shopt -s dotglob
 
-BWS_VERSION=${BWS_VERSION:=0.3.0}
+BWS_VERSION=${BWS_VERSION:=0.3.1}
 
 curl -L -o /tmp/bws.zip https://github.com/bitwarden/sdk/releases/download/bws-v0.3.0/bws-x86_64-unknown-linux-gnu-${BWS_VERSION}.zip
 unzip -o /tmp/bws.zip -d /opt/app-root/bin

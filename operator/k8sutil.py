@@ -18,7 +18,7 @@ class K8sUtil:
         cls.custom_objects_api = kubernetes_asyncio.client.CustomObjectsApi()
 
 class K8sObject:
-    def __init__(self, annotations, labels, meta, name, namespace, spec, status):
+    def __init__(self, annotations, labels, meta, name, namespace, spec, status, **_):
         self.annotations = annotations
         self.labels = labels
         self.meta = meta
@@ -101,7 +101,7 @@ class CachedK8sObject(K8sObject):
 
     @classmethod
     def register(cls, annotations, labels, meta, name, namespace, spec, status, **_):
-        obj = cls.cache.get(name)
+        obj = cls.cache.get((namespace, name))
         if obj:
             obj.annotations = annotations
             obj.labels = labels
@@ -118,5 +118,8 @@ class CachedK8sObject(K8sObject):
                 spec = spec,
                 status = status,
             )
-            cls.cache[name] = obj
+            cls.cache[(namespace, name)] = obj
         return obj
+
+    def unregister(self):
+        cls.cache.pop((self.namespace, self.name))
