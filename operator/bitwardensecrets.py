@@ -1,4 +1,9 @@
+import asyncio
+import json
+import os
+
 from bitwardensecret import BitwardenSecret
+from bitwardensyncerror import BitwardenSyncError
 
 class BitwardenSecrets:
     bws_cmd = os.environ.get('BWS_CMD', 'bws')

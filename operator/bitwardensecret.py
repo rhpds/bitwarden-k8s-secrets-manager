@@ -1,5 +1,11 @@
+import yaml
+
 class BitwardenSecret:
+    # pylint: disable=too-few-public-methods
+
     def __init__(self, definition):
+        # "id" should be considered a valid name
+        # pylint: disable=invalid-name
         self.id = definition['id']
         self.key = definition['key']
         # Attempt to handle values as YAML, but only use YAML parsed value if it is not a string.

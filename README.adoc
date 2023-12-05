@@ -47,11 +47,13 @@ BitwardenSyncConfig name and the value being the spec.
 
 === Example
 
+Example default BitwardenSyncConfig:
+
 --------------------------------------------------------------------------------
 apiVersion: bitwarden-k8s-secrets-manager.demo.redhat.com/v1
 kind: BitwardenSyncConfig
 metadata:
-  name: cluster
+  name: default
   namespace: bitwarden-k8s-secrets-manager
 spec:
   tokenSecret:
@@ -88,4 +90,31 @@ spec:
       database-server:
         secret: app_database_auth
         key: server
+--------------------------------------------------------------------------------
+
+Example BitwardenSyncSecret which uses default BitwardenSyncConfig:
+
+--------------------------------------------------------------------------------
+apiVersion: bitwarden-k8s-secrets-manager.demo.redhat.com/v1
+kind: BitwardenSyncSecret
+metadata:
+  name: myapp-db
+  namespace: myapp
+spec:
+  data:
+    server:
+      secret: app_database_auth
+      key: server
+    username:
+      secret: app_database_auth
+      key: username
+    password:
+      secret: app_database_auth
+      key: password
+  labels:
+    app.kubernetes.io/name:
+      value: example-app
+    database-server:
+      secret: app_database_auth
+      key: server
 --------------------------------------------------------------------------------

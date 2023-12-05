@@ -1,16 +1,17 @@
-from bitwardenk8ssyncconfigsecret import BitwardenSyncConfigSecretSource
+from bitwardensyncconfigsecretsource import BitwardenSyncConfigSecretSource
 
 class BitwardenSyncConfigSecret:
+    # pylint: disable=too-few-public-methods
     def __init__(self, definition):
-        self.annotations = {
+        self.secret_annotations = {
             key: BitwardenSyncConfigSecretSource(value)
             for key, value in definition.get('annotations', {}).items()
         }
-        self.data = {
+        self.secret_data = {
             key: BitwardenSyncConfigSecretSource(value)
             for key, value in definition.get('data', {}).items()
         }
-        self.labels = {
+        self.secret_labels = {
             key: BitwardenSyncConfigSecretSource(value)
             for key, value in definition.get('labels', {}).items()
         }
