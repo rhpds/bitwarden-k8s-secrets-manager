@@ -49,6 +49,10 @@ spec:
                     type: string
                 required:
                 - name
+              project:
+                description: >-
+                  Optionally restrict fetching secrets from specified project name in Bitwarden Secrets Manager.
+                type: string
               secrets:
                 type: array
                 items:

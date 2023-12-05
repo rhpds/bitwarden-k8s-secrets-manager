@@ -45,6 +45,10 @@ class BitwardenSyncConfig(CachedK8sObject):
         return self.spec.get("accessTokenSecret", {}).get("name")
 
     @property
+    def project(self):
+        return self.spec.get("project", None)
+
+    @property
     def secrets(self):
         return [
             BitwardenSyncConfigSecret(item) for item in self.spec.get("secrets", [])
@@ -91,7 +95,7 @@ class BitwardenSyncConfig(CachedK8sObject):
 
     async def get_bitwarden_secrets(self):
         bitwarden_access_token = await self.get_access_token()
-        return await BitwardenSecrets.get(access_token=bitwarden_access_token)
+        return await BitwardenSecrets.get(access_token=bitwarden_access_token, project=self.project)
 
     async def sync_secrets(self, logger):
         try:
