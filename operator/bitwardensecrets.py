@@ -58,15 +58,16 @@ class BitwardenSecrets:
             elif src.secret:
                 value = self.__get_value(src.secret, project)
                 if src.key:
-                    if not isinstance(value, dict):
-                        raise BitwardenSyncError(
-                            f"Bitwarden secret {src.secret} not in YAML dictionary format"
-                        )
-                    if src.key not in value:
-                        raise BitwardenSyncError(
-                            f"Bitwarden secret {src.secret} has no key {src.key}"
-                        )
-                    value = value[src.key]
+                    for item in src.key.split('.'):
+                        if not isinstance(value, dict):
+                            raise BitwardenSyncError(
+                                f"Bitwarden secret {src.secret} not in YAML dictionary format for {src.key}"
+                            )
+                        if item not in value:
+                            raise BitwardenSyncError(
+                                f"Bitwarden secret {src.secret} has no key {src.key}"
+                            )
+                        value = value[item]
                 if isinstance(value, str):
                     ret[key] = value
                 else:
