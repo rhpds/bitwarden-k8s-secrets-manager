@@ -18,14 +18,12 @@ class BitwardenProjects:
         stdout, stderr = await proc.communicate()
         if stderr:
             raise BitwardenSyncError(f"bws error on project list: {stderr}")
-        return cls(
-            projects_dict = {
-                item['name']: BitwardenProject(item) for item in json.loads(stdout)
-            }
-        )
+        return cls(json.loads(stdout))
 
-    def __init__(self, projects_dict):
-        self.projects_dict = projects_dict
+    def __init__(self, projects):
+        self.projects_dict = {
+            project['name']: BitwardenProject(project) for project in projects
+        }
 
     def get_project(self, project_name):
         return self.projects_dict.get(project_name)

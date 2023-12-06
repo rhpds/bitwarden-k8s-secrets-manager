@@ -22,13 +22,10 @@ class BitwardenSecrets:
         stdout, stderr = await proc.communicate()
         if stderr:
             raise BitwardenSyncError(f"bws error: {stderr}")
-
-        return cls(
-            secrets = [BitwardenSecret(item) for item in json.loads(stdout)]
-        )
+        return cls(json.loads(stdout))
 
     def __init__(self, secrets):
-        self.secrets = secrets
+        self.secrets = [BitwardenSecret(item) for item in secrets]
 
     def __get_value(self, secret_key, project):
         for secret in self.secrets:
