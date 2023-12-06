@@ -2,8 +2,18 @@ apiVersion: v1
 entries:
   bitwarden-k8s-secrets-manager:
   - apiVersion: v2
+    appVersion: 0.2.1
+    created: "2023-12-06T22:24:30.601041147Z"
+    description: Operator for managing k8s secrets from Bitwarden secrets manager
+    digest: a4fc6a9d4b289e37c9854b35e95f684fe135110f22d6808960937ad496c4023b
+    name: bitwarden-k8s-secrets-manager
+    type: application
+    urls:
+    - https://rhpds.github.io/bitwarden-k8s-secrets-manager/bitwarden-k8s-secrets-manager-0.2.1.tgz
+    version: 0.2.1
+  - apiVersion: v2
     appVersion: 0.2.0
-    created: "2023-12-06T00:59:42.874545393Z"
+    created: "2023-12-06T22:24:30.60074812Z"
     description: Operator for managing k8s secrets from Bitwarden secrets manager
     digest: b846058e82646ba5b9d05cf30b0dbb526ca5a22b29ca7ab06d0a305bf223357b
     name: bitwarden-k8s-secrets-manager
@@ -13,7 +23,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: 0.1.5
-    created: "2023-12-06T00:59:42.8741115Z"
+    created: "2023-12-06T22:24:30.600304133Z"
     description: Operator for managing k8s secrets from Bitwarden secrets manager
     digest: cedceefa2f7a981abe96cdf0cfdb83611320a4751a9297fcdb816cb19c29417e
     name: bitwarden-k8s-secrets-manager
@@ -21,4 +31,4 @@ entries:
     urls:
     - https://rhpds.github.io/bitwarden-k8s-secrets-manager/bitwarden-k8s-secrets-manager-0.1.5.tgz
     version: 0.1.5
-generated: "2023-12-06T00:59:42.873078272Z"
+generated: "2023-12-06T22:24:30.59928908Z"
