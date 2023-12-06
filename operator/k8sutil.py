@@ -51,7 +51,7 @@ class K8sObject:
     # Disable pylint warnings for properties which must be declared in subclass
     # pylint: disable=no-member
 
-    def __init__(self, annotations, labels, meta, name, namespace, spec, status, **_):
+    def __init__(self, annotations, labels, meta, name, namespace, spec, status, uid, **_):
         """
         Initalize object from kopf keywords args
         """
@@ -62,6 +62,7 @@ class K8sObject:
         self.namespace = namespace
         self.spec = spec
         self.status = status
+        self.uid = uid
 
     def __str__(self):
         """
@@ -133,23 +134,15 @@ class CachedK8sObject(K8sObject):
     # Disable pylint warning for cache, which must be declared in subclass
     # pylint: disable=no-member
 
-    def __init__(self, annotations, labels, meta, name, namespace, spec, status, **_):
+    def __init__(self, **kwargs):
         """
         Initalize object from kopf keywords args and add asyncio lock.
         """
-        super().__init__(
-            annotations = annotations,
-            labels = labels,
-            meta = meta,
-            name = name,
-            namespace = namespace,
-            spec = spec,
-            status = status,
-        )
+        super().__init__(**kwargs)
         self.lock = asyncio.Lock()
 
     @classmethod
-    def register(cls, annotations, labels, meta, name, namespace, spec, status, **_):
+    def register(cls, annotations, labels, meta, name, namespace, spec, status, uid, **_):
         """
         Ceating object in cashe or updating existing from kopf keyword args
         """
@@ -169,6 +162,7 @@ class CachedK8sObject(K8sObject):
                 namespace = namespace,
                 spec = spec,
                 status = status,
+                uid = uid,
             )
             cls.cache[(namespace, name)] = obj
         return obj

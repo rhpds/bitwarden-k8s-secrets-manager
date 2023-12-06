@@ -79,6 +79,7 @@ class BitwardenSyncSecret(CachedK8sObject):
             for key, value in self.spec.get('labels', {}).items()
         }
 
+    # DEPRECATED - The sync config label now uses uid to avoid name length issues.
     @property
     def sync_config_value(self):
         return f"{self.namespace}.{self.name}"
@@ -86,35 +87,6 @@ class BitwardenSyncSecret(CachedK8sObject):
     @property
     def type(self):
         return self.spec.get('type', 'Opaque')
-
-    async def check_delete_secret(self):
-        secret = None
-        try:
-            secret = await K8sUtil.core_v1_api.read_namespaced_secret(
-                name = self.name,
-                namespace = self.namespace,
-            )
-        except kubernetes_asyncio.client.rest.ApiException as err:
-            if err.status == 404:
-                return None, None
-            raise
-
-        if (
-            not secret.metadata.labels or
-            secret.metadata.labels['app.kubernetes.io/managed-by'] != 'bitwarden-k8s-secrets-manager' or
-            secret.metadata.labels[K8sUtil.sync_config_label] != self.sync_config_value
-        ):
-            return secret, False
-
-        try:
-            secret = await K8sUtil.core_v1_api.delete_namespaced_secret(
-                name = self.name,
-                namespace = self.namespace,
-            )
-        except kubernetes_asyncio.client.rest.ApiException as err:
-            if err.status != 404:
-                raise
-        return secret, True
 
     async def handle_delete(self, logger):
         await check_delete_secret(
