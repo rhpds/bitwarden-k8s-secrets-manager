@@ -1,0 +1,2 @@
+class BitwardenSyncError(Exception):
+    pass
