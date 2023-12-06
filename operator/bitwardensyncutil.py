@@ -1,4 +1,5 @@
 from base64 import b64encode
+import json
 
 import kubernetes_asyncio
 
@@ -27,12 +28,15 @@ async def check_delete_secret(
     if (
         not secret.metadata.labels or
         secret.metadata.labels['app.kubernetes.io/managed-by'] != 'bitwarden-k8s-secrets-manager' or
-        secret.metadata.labels[K8sUtil.sync_config_label] != managed_by.sync_config_value
+        # DEPRECATED - sync_config_value, retain support for compatibility
+        (
+            secret.metadata.labels[K8sUtil.sync_config_label] != managed_by.sync_config_value and
+            secret.metadata.labels[K8sUtil.sync_config_label] != managed_by.uid
+        )
     ):
         logger.warning(
             f"Did not delete Secret {name} in {namespace} for {managed_by}: "
-            f"{K8sUtil.sync_config_label} label \"{secret.metadata.labels[K8sUtil.sync_config_label]}\" "
-            f"!= {managed_by.sync_config_value}"
+            f"{K8sUtil.sync_config_label} label value mismatch"
         )
         return
 
@@ -62,14 +66,21 @@ async def manage_secret(
             sources=secret_config.secret_data, projects=bitwarden_projects,
         ).items()
     }
+
     annotations = bitwarden_secrets.get_values(
         sources=secret_config.secret_annotations, projects=bitwarden_projects,
     )
+    annotations[K8sUtil.sync_config_label] = json.dumps({
+        "kind": managed_by.kind,
+        "name": managed_by.name,
+        "namespace": managed_by.namespace,
+    })
+
     labels = bitwarden_secrets.get_values(
         sources=secret_config.secret_labels, projects=bitwarden_projects,
     )
     labels['app.kubernetes.io/managed-by'] = 'bitwarden-k8s-secrets-manager'
-    labels[K8sUtil.sync_config_label] = managed_by.sync_config_value
+    labels[K8sUtil.sync_config_label] = managed_by.uid
 
     secret = None
     try:
@@ -94,11 +105,14 @@ async def manage_secret(
         if (
             secret.metadata.labels and
             K8sUtil.sync_config_label in secret.metadata.labels and
-            secret.metadata.labels[K8sUtil.sync_config_label] != managed_by.sync_config_value
+            # DEPRECATED - sync_config_value, retain support for compatibility
+            (
+                secret.metadata.labels[K8sUtil.sync_config_label] != managed_by.sync_config_value and
+                secret.metadata.labels[K8sUtil.sync_config_label] != managed_by.uid
+            )
         ):
-            managed_by_namespace, managed_by_name = secret.metadata.labels[K8sUtil.sync_config_label].split('.')
             raise BitwardenSyncError(
-                f"Secret {name} in {namespace} is managed by BitwardenSyncConfig {managed_by_name} in {managed_by_namespace}"
+                f"Secret {name} in {namespace} is managed by other BitwardenSyncConfig or BitwardenSyncSecret"
             )
 
         if (

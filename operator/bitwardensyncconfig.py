@@ -55,6 +55,7 @@ class BitwardenSyncConfig(CachedK8sObject):
             BitwardenSyncConfigSecret(item) for item in self.spec.get("secrets", [])
         ]
 
+    # DEPRECATED - The sync config label now uses uid to avoid name length issues.
     @property
     def sync_config_value(self):
         return f"{self.namespace}.{self.name}"
