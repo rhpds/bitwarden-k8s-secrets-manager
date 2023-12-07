@@ -42,7 +42,7 @@ async def startup(settings: kopf.OperatorSettings, **_):
     await K8sUtil.on_startup()
 
 @kopf.on.cleanup()
-async def cleanup():
+async def cleanup(**_):
     """
     Gracefully shutdown on cleanup
     """
