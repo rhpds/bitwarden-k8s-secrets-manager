@@ -5,6 +5,7 @@ import sys
 sys.path.append('../../operator')
 
 from bitwardensyncconfigsecretsource import BitwardenSyncConfigSecretSource
+from bitwardensyncerror import BitwardenSyncError
 from bitwardenprojects import BitwardenProjects
 from bitwardensecrets import BitwardenSecrets
 
@@ -102,6 +103,43 @@ class TestBitwardenSecrets(unittest.TestCase):
             {"value": "value not nested"},
         )
 
+    def test_05(self):
+        sources = {
+            "value": BitwardenSyncConfigSecretSource({
+                "key": "no-secret-or-value",
+            }),
+        }
+        with self.assertRaises(BitwardenSyncError):
+            bitwarden_secrets.get_values(sources, bitwarden_projects)
+
+    def test_06(self):
+        sources = {
+            "value": BitwardenSyncConfigSecretSource({
+                "secret": "secret-not-found",
+            }),
+        }
+        with self.assertRaises(BitwardenSyncError):
+            bitwarden_secrets.get_values(sources, bitwarden_projects)
+
+    def test_07(self):
+        sources = {
+            "value": BitwardenSyncConfigSecretSource({
+                "secret": "dict_secret",
+                "key": "key-not-found",
+            }),
+        }
+        with self.assertRaises(BitwardenSyncError):
+            bitwarden_secrets.get_values(sources, bitwarden_projects)
+
+    def test_08(self):
+        sources = {
+            "value": BitwardenSyncConfigSecretSource({
+                "secret": "simple_secret",
+                "key": "secret-not-dict",
+            }),
+        }
+        with self.assertRaises(BitwardenSyncError):
+            bitwarden_secrets.get_values(sources, bitwarden_projects)
 
 if __name__ == '__main__':
     unittest.main()

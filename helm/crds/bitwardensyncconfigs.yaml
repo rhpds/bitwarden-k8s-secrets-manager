@@ -74,8 +74,6 @@ spec:
                             type: string
                           value:
                             type: string
-                        required:
-                        - secret
                     data:
                       type: object
                       additionalProperties:
@@ -89,8 +87,6 @@ spec:
                             type: string
                           value:
                             type: string
-                        required:
-                        - secret
                     labels:
                       type: object
                       additionalProperties:
@@ -104,8 +100,6 @@ spec:
                             type: string
                           value:
                             type: string
-                        required:
-                        - secret
                     name:
                       type: string
                     namespace:
