@@ -199,6 +199,9 @@ spec:
 
 Example BitwardenSyncSecret which uses non-YAML formatted secrets:
 
+  Note: it is possible to have multiple secrets like this - just make sure no
+  "key:" is defined under the secret name
+
 --------------------------------------------------------------------------------
 apiVersion: bitwarden-k8s-secrets-manager.demo.redhat.com/v1
 kind: BitwardenSyncSecret
@@ -212,12 +215,6 @@ spec:
   labels:
     app.kubernetes.io/name:
       value: example-app
-    ldap-server:
-      secret: ldap_creds
-      key: server
-    env:
-      secret: ldap_creds
-      key: environment
 
 --------------------------------------------------------------------------------
 
@@ -272,7 +269,7 @@ CustomLog logs/ssl_request_log \
 
 --------------------------------------------------------------------------------
 
-Example BitwardenSyncSecret which uses secrets from 2 different projects from
+Example BitwardenSyncSecret which uses secrets from 2 specific projects from
    YAML-formatted secrets.
 
 NOTE: this is useful if you have secrets that have the same values defined and
