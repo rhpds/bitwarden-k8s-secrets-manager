@@ -146,6 +146,9 @@ spec:
     ldap-server:
       secret: ldap_creds
       key: server
+    env:
+      secret: ldap_creds
+      key: environment
 
 --------------------------------------------------------------------------------
 
@@ -164,4 +167,5 @@ Value:
 server: ldap.mydomain.example.com
 bind_dn: uid=clustera-euwest2-robot,cn=users,dc=mydomain,dc=example,dc=com
 bind_password: <ANOTHER_hideously_COMPL3X_PASSW0$%>
+environment: dev
 --------------------------------------------------------------------------------
