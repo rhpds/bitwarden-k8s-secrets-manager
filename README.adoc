@@ -84,12 +84,41 @@ spec:
       password:
         secret: app_database_auth
         key: password
+      database:
+        secret: app_database_auth
+        key: dbname
+      port:
+        secret: app_database_auth
+        key: dbport
     labels:
       app.kubernetes.io/name:
         value: example-app
       database-server:
         secret: app_database_auth
         key: server
+
+--------------------------------------------------------------------------------
+
+Example Bitwarden Secrets Manager values for using these entries.
+
+--------------------------------------------------------------------------------
+Secrets Manager Secret
+
+Name: 
+-------------------------------------------------------------------------------
+app_database_auth
+-------------------------------------------------------------------------------
+
+Value:
+--------------------------------------------------------------------------------
+server: productiondb.example.com
+password: <our_really_strong_c0mpl#X_PASSWORD!>
+username: tannerite
+dbname: tracking
+dbport: 12345
+--------------------------------------------------------------------------------
+
+
 --------------------------------------------------------------------------------
 
 Example BitwardenSyncSecret which uses default BitwardenSyncConfig:
@@ -102,19 +131,34 @@ metadata:
   namespace: myapp
 spec:
   data:
-    server:
-      secret: app_database_auth
-      key: server
-    username:
-      secret: app_database_auth
-      key: username
-    password:
-      secret: app_database_auth
-      key: password
+    bind_dn:
+      secret: ldap_creds
+      key: bind_dn
+    bind_pw:
+      secret: ldap_creds
+      key: bind_password
   labels:
     app.kubernetes.io/name:
       value: example-app
-    database-server:
-      secret: app_database_auth
+    ldap-server:
+      secret: ldap_creds
       key: server
+
+--------------------------------------------------------------------------------
+
+Example Bitwarden Secrets Manager values for using these entries.
+
+--------------------------------------------------------------------------------
+Secrets Manager Secret
+
+Name: 
+-------------------------------------------------------------------------------
+ldap_creds
+-------------------------------------------------------------------------------
+
+Value:
+--------------------------------------------------------------------------------
+server: ldap.mydomain.example.com
+bind_dn: uid=clustera-euwest2-robot,cn=users,dc=mydomain,dc=example,dc=com
+bind_password: <ANOTHER_hideously_COMPL3X_PASSW0$%>
 --------------------------------------------------------------------------------
