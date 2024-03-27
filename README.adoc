@@ -169,3 +169,132 @@ bind_dn: uid=clustera-euwest2-robot,cn=users,dc=mydomain,dc=example,dc=com
 bind_password: <ANOTHER_hideously_COMPL3X_PASSW0$%>
 environment: dev
 --------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+Example Bitwarden Secrets Manager values for combining two separate secrets
+   into one k8s secret - assumes yaml-formatted data to create a dict.
+
+   NOTE: if "key" is not defined here, then the whole secret is dumped out
+   under the entry in the combined secret
+
+--------------------------------------------------------------------------------
+apiVersion: bitwarden-k8s-secrets-manager.demo.redhat.com/v1
+kind: BitwardenSyncSecret
+metadata:
+  name: myapp-db
+  namespace: myapp
+spec:
+  data:
+    ldap:
+      secret: ldap_creds
+    database:
+      secret: app_database_auth
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+Example BitwardenSyncSecret which uses non-YAML formatted secrets:
+
+--------------------------------------------------------------------------------
+apiVersion: bitwarden-k8s-secrets-manager.demo.redhat.com/v1
+kind: BitwardenSyncSecret
+metadata:
+  name: myapp-db
+  namespace: myapp
+spec:
+  data:
+    conf.d_ssl.conf:
+      secret: apache_config
+  labels:
+    app.kubernetes.io/name:
+      value: example-app
+    ldap-server:
+      secret: ldap_creds
+      key: server
+    env:
+      secret: ldap_creds
+      key: environment
+
+--------------------------------------------------------------------------------
+
+Example Bitwarden Secrets Manager values for using these entries.
+
+--------------------------------------------------------------------------------
+Secrets Manager Secret
+
+Name: 
+-------------------------------------------------------------------------------
+apache_config
+-------------------------------------------------------------------------------
+
+Value:
+--------------------------------------------------------------------------------
+Listen 443 https
+
+SSLPassPhraseDialog exec:/usr/libexec/httpd-ssl-pass-dialog
+SSLSessionCache         shmcb:/run/httpd/sslcache(512000)
+SSLSessionCacheTimeout  300
+SSLRandomSeed startup file:/dev/urandom  256
+SSLRandomSeed connect builtin
+SSLCryptoDevice builtin
+
+<VirtualHost _default_:443>
+
+ErrorLog logs/ssl_error_log
+TransferLog logs/ssl_access_log
+LogLevel warn
+SSLEngine on
+SSLProtocol all -SSLv2 -SSLv3
+SSLCipherSuite HIGH:3DES:!aNULL:!MD5:!SEED:!IDEA
+SSLCertificateFile /etc/pki/tls/certs/localhost.crt
+SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
+
+<Files ~ "\.(cgi|shtml|phtml|php3?)$">
+    SSLOptions +StdEnvVars
+</Files>
+<Directory "/var/www/cgi-bin">
+    SSLOptions +StdEnvVars
+</Directory>
+
+BrowserMatch "MSIE [2-5]" \
+         nokeepalive ssl-unclean-shutdown \
+         downgrade-1.0 force-response-1.0
+
+CustomLog logs/ssl_request_log \
+          "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+
+</VirtualHost>
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+Example BitwardenSyncSecret which uses secrets from 2 different projects from
+   YAML-formatted secrets.
+
+NOTE: this is useful if you have secrets that have the same values defined and
+   you need to combine two different entries from different projects
+
+--------------------------------------------------------------------------------
+apiVersion: bitwarden-k8s-secrets-manager.demo.redhat.com/v1
+kind: BitwardenSyncSecret
+metadata:
+  name: myapp-db
+  namespace: myapp_uat_munging
+spec:
+  data:
+    server:
+      project: superdupersecret_prod
+      secret: app_database_auth
+      key: server
+    username:
+      project: supersecret_uat
+      secret: app_database_auth
+      key: username
+    password:
+      project: supersecret_uat
+      secret: app_database_auth
+      key: password
