@@ -131,6 +131,9 @@ metadata:
   namespace: myapp
 spec:
   data:
+    server:
+      secret: ldap_creds
+      key: server
     bind_dn:
       secret: ldap_creds
       key: bind_dn
