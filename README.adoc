@@ -56,7 +56,7 @@ metadata:
   name: default
   namespace: bitwarden-k8s-secrets-manager
 spec:
-  tokenSecret:
+  accessTokenSecret:
     name: bitwarden-access-token
   secrets:
   # Bitwarden secret named "app_secret_key" is a simple string value synced
