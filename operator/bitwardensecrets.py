@@ -1,3 +1,5 @@
+from base64 import b64encode
+
 import asyncio
 import json
 import os
@@ -39,9 +41,10 @@ class BitwardenSecrets:
             )
         raise BitwardenSyncError(f"Bitwarden secret \"{secret_key}\" not found")
 
-    def get_values(self, sources, projects):
+    def get_values(self, sources, projects, for_data=False):
         ret = {}
         for key, src in sources.items():
+            base64encode = for_data and src.base64encode
             project = None
             if src.project:
                 project = projects.get_project(src.project)
@@ -51,7 +54,7 @@ class BitwardenSecrets:
                     )
 
             if src.value:
-                ret[key] = src.value
+                ret[key] = b64encode(src.value.encode('utf-8')).decode('utf-8') if base64encode else src.value
             elif src.secret:
                 value = self.__get_value(src.secret, project)
                 if src.key:
@@ -74,11 +77,10 @@ class BitwardenSecrets:
                                     f"Bitwarden secret {src.secret} has no key {src.key}"
                                 )
                             value = value[item]
-                if isinstance(value, str):
-                    ret[key] = value
-                else:
+                if not isinstance(value, str):
                     # Maybe not what is intended, but better than to fail?
-                    ret[key] = json.dumps(value)
+                    value = json.dumps(value)
+                ret[key] = b64encode(value.encode('utf-8')).decode('utf-8') if base64encode else value
             else:
                 raise BitwardenSyncError("No secret or value in configuration")
         return ret

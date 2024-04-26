@@ -1,4 +1,3 @@
-from base64 import b64encode
 import json
 
 import kubernetes_asyncio
@@ -61,9 +60,9 @@ async def manage_secret(
     bitwarden_projects, bitwarden_secrets, managed_by, name, namespace, secret_config, logger,
 ):
     data = {
-        key: b64encode(value.encode('utf-8')).decode('utf-8')
+        key: value
         for key, value in bitwarden_secrets.get_values(
-            sources=secret_config.secret_data, projects=bitwarden_projects,
+            sources=secret_config.secret_data, projects=bitwarden_projects, for_data=True,
         ).items()
     }
 
