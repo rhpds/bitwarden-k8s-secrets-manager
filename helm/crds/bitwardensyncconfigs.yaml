@@ -61,6 +61,11 @@ spec:
                   - data
                   - name
                   properties:
+                    action:
+                      type: string
+                      enum:
+                      - patch
+                      - replace
                     annotations:
                       type: object
                       additionalProperties:

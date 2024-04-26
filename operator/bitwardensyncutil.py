@@ -114,23 +114,46 @@ async def manage_secret(
                 f"Secret {name} in {namespace} is managed by other BitwardenSyncConfig or BitwardenSyncSecret"
             )
 
-        if (
-            secret.data != data or
-            (secret.metadata.annotations or {}) != annotations or
-            (secret.metadata.labels or {}) != labels or
-            secret.type != secret_config.type
-        ):
-            secret.data = data
-            secret.metadata.annotations = annotations
-            secret.metadata.labels = labels
-            secret.type = secret_config.type
+        secret_annotations = secret.metadata.annotations or {}
+        secret_data = secret.data or {}
+        secret_labels = secret.metadata.labels or {}
 
-            secret = await K8sUtil.core_v1_api.replace_namespaced_secret(
-                body = secret,
-                name = secret_config.name,
-                namespace = namespace,
-            )
-            logger.info(f"Updated Secret {name} in {namespace} for {managed_by}")
+        if secret_config.action == 'patch':
+            if (
+                secret_annotations != secret_annotations | annotations or
+                secret_data != secret_data | data or
+                secret_labels != secret_labels | labels
+            ):
+                secret = await K8sUtil.core_v1_api.patch_namespaced_secret(
+                    body = {
+                        "data": data,
+                        "metadata": {
+                            "annotations": annotations,
+                            "labels": labels,
+                        },
+                    },
+                    name = secret_config.name,
+                    namespace = namespace,
+                )
+                logger.info(f"Patched Secret {name} in {namespace} for {managed_by}")
+        else:
+            if (
+                secret_annotations != annotations or
+                secret_data != data or
+                secret_labels != labels or
+                secret.type != secret_config.type
+            ):
+                secret.data = data
+                secret.metadata.annotations = annotations
+                secret.metadata.labels = labels
+                secret.type = secret_config.type
+
+                secret = await K8sUtil.core_v1_api.replace_namespaced_secret(
+                    body = secret,
+                    name = secret_config.name,
+                    namespace = namespace,
+                )
+                logger.info(f"Updated Secret {name} in {namespace} for {managed_by}")
 
         return secret
 

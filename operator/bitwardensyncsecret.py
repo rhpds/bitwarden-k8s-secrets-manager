@@ -55,6 +55,10 @@ class BitwardenSyncSecret(CachedK8sObject):
                 )
 
     @property
+    def action(self):
+        return self.spec.get('action', 'replace')
+
+    @property
     def config_name(self):
         return self.spec.get('config', {}).get('name', 'default')
 

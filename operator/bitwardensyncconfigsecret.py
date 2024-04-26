@@ -3,6 +3,7 @@ from bitwardensyncconfigsecretsource import BitwardenSyncConfigSecretSource
 class BitwardenSyncConfigSecret:
     # pylint: disable=too-few-public-methods
     def __init__(self, definition):
+        self.action = definition.get('action', 'replace')
         self.secret_annotations = {
             key: BitwardenSyncConfigSecretSource(value)
             for key, value in definition.get('annotations', {}).items()
