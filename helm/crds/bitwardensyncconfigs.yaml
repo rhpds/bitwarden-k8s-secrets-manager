@@ -61,6 +61,11 @@ spec:
                   - data
                   - name
                   properties:
+                    action:
+                      type: string
+                      enum:
+                      - patch
+                      - replace
                     annotations:
                       type: object
                       additionalProperties:
@@ -79,6 +84,8 @@ spec:
                       additionalProperties:
                         type: object
                         properties:
+                          base64encode:
+                            type: boolean
                           key:
                             type: string
                           project:

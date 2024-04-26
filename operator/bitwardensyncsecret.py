@@ -1,5 +1,7 @@
 import kubernetes_asyncio
 
+import bitwardensyncconfig
+
 from k8sutil import CachedK8sObject, K8sUtil
 from bitwardensyncconfigsecretsource import BitwardenSyncConfigSecretSource
 from bitwardensyncerror import BitwardenSyncError
@@ -17,6 +19,9 @@ class BitwardenSyncSecret(CachedK8sObject):
     @classmethod
     async def on_create(cls, logger, **kwargs):
         secret = cls.register(**kwargs)
+        config = bitwardensyncconfig.BitwardenSyncConfig.cache.get((secret.config_namespace, secret.config_name))
+        if config:
+            config.sync_pending = True
         logger.info(f"{secret} created")
 
     @classmethod
@@ -34,6 +39,9 @@ class BitwardenSyncSecret(CachedK8sObject):
     @classmethod
     async def on_update(cls, logger, **kwargs):
         secret = cls.register(**kwargs)
+        config = bitwardensyncconfig.BitwardenSyncConfig.cache.get((secret.config_namespace, secret.config_name))
+        if config:
+            config.sync_pending = True
         logger.info(f"{secret} updated")
 
     @classmethod
@@ -45,6 +53,10 @@ class BitwardenSyncSecret(CachedK8sObject):
                     bitwarden_secrets=bitwarden_secrets,
                     logger=logger,
                 )
+
+    @property
+    def action(self):
+        return self.spec.get('action', 'replace')
 
     @property
     def config_name(self):

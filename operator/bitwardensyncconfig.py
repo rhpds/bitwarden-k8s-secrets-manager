@@ -41,6 +41,10 @@ class BitwardenSyncConfig(CachedK8sObject):
         config = cls.register(**kwargs)
         await config.sync_secrets(logger=logger)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.sync_pending = False
+
     @property
     def access_token_secret_name(self):
         return self.spec.get("accessTokenSecret", {}).get("name")
@@ -99,6 +103,8 @@ class BitwardenSyncConfig(CachedK8sObject):
         return await BitwardenSecrets.get(access_token=bitwarden_access_token, project=self.project)
 
     async def sync_secrets(self, logger):
+        self.sync_pending = False
+
         bitwarden_access_token = await self.get_access_token()
         try:
             bitwarden_projects = await BitwardenProjects.get(bitwarden_access_token)

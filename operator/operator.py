@@ -5,6 +5,8 @@ Kopf operator module.
 import asyncio
 import logging
 
+from time import time
+
 import kopf
 
 from configure_kopf_logging import configure_kopf_logging
@@ -93,10 +95,13 @@ async def bitwarden_sync_config_daemon(logger, stopped, **kwargs):
     BitwardenSyncConfig sync daemon
     """
     config = BitwardenSyncConfig.register(**kwargs)
+    last_sync = time()
     try:
         while not stopped:
-            await asyncio.sleep(config.sync_interval)
-            await config.sync_secrets(logger=logger)
+            await asyncio.sleep(2)
+            if config.sync_pending or time() >= last_sync + config.sync_interval:
+                await config.sync_secrets(logger=logger)
+                last_sync = time()
     except asyncio.CancelledError:
         pass
 
