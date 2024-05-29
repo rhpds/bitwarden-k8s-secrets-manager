@@ -171,4 +171,4 @@ class CachedK8sObject(K8sObject):
         """
         Remove object from cache.
         """
-        self.cache.pop((self.namespace, self.name))
+        self.cache.pop((self.namespace, self.name), None)
