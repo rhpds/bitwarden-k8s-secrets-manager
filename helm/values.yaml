@@ -45,6 +45,12 @@ resources:
     cpu: 500m
     memory: 128Mi
 
+# Additional environment variables to pass to bitwarden-k8s-secrets-manager
+# extraEnvs:
+# - name: BWS_SERVER_URL
+#   value: https://vault.bitwarden.eu
+extraEnvs: []
+
 nodeSelector: {}
 
 tolerations: []

@@ -22,6 +22,10 @@ spec:
       - name: operator
         image: {{ include "bitwarden-k8s-secrets-manager.image" . | quote }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- with .Values.extraEnvs }}
+        env:
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
         livenessProbe:
